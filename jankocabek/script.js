@@ -1,5 +1,6 @@
 /* closure for dynamically generating the right request for each call
-*also to have generating headers and other similar stuff in one place
+*all things in one place and apiKey and apiBaseUrl are hidden
+* vraci sestavené funkce pro jednotlivá volání
 */
 const api = () => {
     const apikey = '134d015d-5119-4142-af6f-1188e56feb36';
@@ -28,7 +29,9 @@ const api = () => {
 /**
  * main event which start after page load
  * @see {@link apiListTask} fetch and return all saved tasks from backend
- * @see {@link render} create an object representing DOM
+ * @see {@link renderTask} create an object representing whole card with Task
+ * @see {@link renderOperations} create an object representing one Li item with Operation
+ * @see {@link addTaskFromForm} add event listener to form to be able to add a new task
  */
 document.addEventListener('DOMContentLoaded', function () {
     //  const apiInstance = api();
@@ -50,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- *this promise returns the array with all tasks
+ *this function returns the array with all data of tasks
  * @returns {Promise<object[]>}
  */
 function apiListTask() {
@@ -62,9 +65,13 @@ function apiListTask() {
         console.log(obj);
         return obj.data
     }).catch(error => console.log(error));
-    // return getData(source)
 }
 
+/**
+ *
+ * @param taskId {string} id of the task for which we want to get operations
+ * @returns {Promise<object[]>} array of operation data objects
+ */
 function apiListOperationForTask(taskId) {
     return fetch(api().getOperationsForTask(taskId)).then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
@@ -76,6 +83,11 @@ function apiListOperationForTask(taskId) {
     }).catch(error => console.log(error));
 }
 
+/**
+ *
+ * @param task { {title:string,description:string}} task data from main form
+ * @returns {Promise<[undefined] | void>} send the task on server and return an object with task data for simple work save in array to be compatible with other functions
+ */
 function apiCreateTask(task) {
     return fetch(api().addTask(task)).then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
@@ -88,11 +100,17 @@ function apiCreateTask(task) {
     // return getData(source,task)
 }
 
+/**nasleduej list of basic function dle LMS, vraci promise s response ktery dale zpracovavam
+ * nevim proč jsem skončil u tohodle rozdeleni na halvičkua zbytek jinde asi jsem se snazil to spojit stejne casti
+ *
+ * @param id
+ * @returns {Promise<Response>} response from server if ok contain all the necessary data if need
+ */
 function apiDeleteTask(id) {
     return fetch(api().deleteTask(id))
 }
 
-function createOperationForTask(taskId, description) {
+function apiCreateOperationForTask(taskId, description) {
     return fetch(api().addOperation(taskId, description))
 }
 
@@ -107,6 +125,7 @@ function apiDeleteOperation(operationId) {
 function apiUpdateTask(taskId, taskData) {
     return fetch(api().finishTask(taskId, taskData))
 }
+
 
 function addTaskFromForm() {
     const form = document.getElementsByTagName('form')[0];
@@ -123,30 +142,31 @@ function addTaskFromForm() {
     })
 }
 
-/**
- * Fetches data using a request function from the API closure.
- * @param {function(object=): Request} source - A function returning a Request object, such as {@link api.getTasks}.
- * @param task {object}could be a object that contains new task or other data given into system
- * @returns {Promise<object[]>} A promise resolving to an array of objects. for us is task or tasks from given source
- * @see {@link api} for available request functions.
- */
-function getData(source, task = null) {
-    const request = task ? source(task) : source();
-    return fetch(request).then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json()
-    }).then(obj => {
-        if (obj.error !== false) throw new Error('something went wrong with data');
-        //console.log('data is here',obj);
-        return Array.isArray(obj.data) ? obj.data : [obj.data];
-    }).catch(error => console.log(error));
-}
+
+// /**
+//  * Fetches data using a request function from the API closure.
+//  * @param {function(object=): Request} source - A function returning a Request object, such as {@link api.getTasks}.
+//  * @param task {object}could be a object that contains new task or other data given into system
+//  * @returns {Promise<object[]>} A promise resolving to an array of objects. for us is task or tasks from given source
+//  * @see {@link api} for available request functions.
+//  */
+// function getData(source, task = null) {
+//     const request = task ? source(task) : source();
+//     return fetch(request).then(response => {
+//         if (!response.ok) throw new Error('Network response was not ok');
+//         return response.json()
+//     }).then(obj => {
+//         if (obj.error !== false) throw new Error('something went wrong with data');
+//         //console.log('data is here',obj);
+//         return Array.isArray(obj.data) ? obj.data : [obj.data];
+//     }).catch(error => console.log(error));
+// }
 
 /**
  *
- * render HTML card for every given task
- * @param tasks {object[]}
- * @returns {object}
+ * render card (soustavu elementů) for every given task
+ * @param tasks {object[]} array of a task from server or from add form
+ * @returns {{id:string,list :HTMLUListElement,operations: array}[] } transformed arary with neccesary data from tasks for joining operations and their rendering
  */
 function renderTask(tasks) {
     const mainElement = document.getElementById('app');
@@ -154,18 +174,11 @@ function renderTask(tasks) {
         const taskCard = new TaskCard(task);
         mainElement.appendChild(taskCard.render());
         return {
-            id: task.id,
-            list: taskCard.list,
-            operations: taskCard.operations,
+            id: task.id, list: taskCard.list, operations: taskCard.operations,
         }
     });
 }
 
-/**
- *
- * @param operations {Array}
- * @param taskData {{taskId:string},{list:HTMLUListElement},{operations:array}}
- */
 function renderOperations(operations, taskData) {
     operations.forEach(operation => {
         const list = taskData.list;
@@ -180,7 +193,7 @@ function renderOperations(operations, taskData) {
 function deleteTaskHandler(evt, obj) {
     evt.preventDefault();
     const id = obj.id;
-    console.log('deleting task: ', id, '')
+    //console.log('deleting task: ', id, '')
     apiDeleteTask(id).then(response => {
         if (!response.ok) {
             console.log(response)
@@ -192,21 +205,22 @@ function deleteTaskHandler(evt, obj) {
             obj = null;//remove reference to the obj of the task!!!!
         }
     }).catch(error => console.log(error));
-
-
 }
 
 function addOperationHandler(evt, taskObj) {
     evt.preventDefault();
     const id = taskObj.id;
     const description = taskObj.textInput.value;
-    console.log('adding operation: ', description, 'for task: ', id, '')
+    if (description.length < 5) {
+        alert('description must be at least 5 characters long');
+        return;
+    }
+    //console.log('adding operation: ', description, 'for task: ', id, '')
     const operation = {
-        description: description,
-        timeSpent: 0
+        description: description, timeSpent: 0
     }
     // console.log(description)
-    createOperationForTask(id, operation).then(response => {
+    apiCreateOperationForTask(id, operation).then(response => {
         if (response.ok === false) {
             console.log(response)
             throw new Error('Network response was not ok' + response);
@@ -236,8 +250,7 @@ function updateOperationHandler(evt, obj, addTime) {
     const description = obj.description;
     const newTime = obj.timeSpent + addTime;
     apiUpdateOperation(obj.id, {
-        description: description,
-        timeSpent: newTime
+        description: description, timeSpent: newTime
     }).then(response => {
         if (!response.ok) {
             //console.log(response);
@@ -315,9 +328,7 @@ class TaskCard extends Component {
      */
     extractTaskData(task) {
         return {
-            title: task.title,
-            description: task.description,
-            status: task.status
+            title: task.title, description: task.description, status: task.status
         }
     }
 
