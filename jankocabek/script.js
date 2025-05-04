@@ -134,6 +134,7 @@ function addTaskFromForm() {
             alert('title and description must be filled and at least 5 characters long');
             return;
         }
+        form.reset();
         apiCreateTask(task).then(task => renderTask(task))
     })
 }
