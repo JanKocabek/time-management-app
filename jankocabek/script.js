@@ -137,6 +137,10 @@ function addTaskFromForm() {
             description: form.elements.namedItem('description').value,
             status: 'open'
         }
+        if (task.title.trim() === '' || task.description.trim() === '' || task.title.length < 5 || task.description.length < 5) {
+            alert('title and description must be filled and at least 5 characters long');
+            return;
+        }
         //apiInstance.apiCreateTask, task
         apiCreateTask(task).then(task => renderTask(task))
     })
@@ -201,7 +205,7 @@ function deleteTaskHandler(evt, obj) {
 
         } else {
             //console.log('deleting task: ', id, 'was successful')
-            evt.target.closest('section').remove();
+            obj.section.remove();
             obj = null;//remove reference to the obj of the task!!!!
         }
     }).catch(error => console.log(error));
@@ -211,15 +215,15 @@ function addOperationHandler(evt, taskObj) {
     evt.preventDefault();
     const id = taskObj.id;
     const description = taskObj.textInput.value;
-    if (description.length < 5) {
-        alert('description must be at least 5 characters long');
+    if (description.trim() === '' || description.length < 5) {
+        alert('description must be filled and at least 5 characters long');
         return;
     }
-    //console.log('adding operation: ', description, 'for task: ', id, '')
+//console.log('adding operation: ', description, 'for task: ', id, '')
     const operation = {
         description: description, timeSpent: 0
     }
-    // console.log(description)
+// console.log(description)
     apiCreateOperationForTask(id, operation).then(response => {
         if (response.ok === false) {
             console.log(response)
@@ -233,10 +237,10 @@ function addOperationHandler(evt, taskObj) {
         }
         const item = new OperationItem(obj.data);
         taskObj.operations.push(item);
-        console.log('new operation added\n', 'list of operations:', '\n', taskObj.operations);
+        //console.log('new operation added\n', 'list of operations:', '\n', taskObj.operations);
         taskObj.list.append(item.render());
     }).catch(error => console.log(error));
-    evt.target.closest('form').reset();
+    taskObj.form.reset();
 }
 
 /**
