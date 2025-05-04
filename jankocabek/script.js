@@ -146,26 +146,6 @@ function addTaskFromForm() {
     })
 }
 
-
-// /**
-//  * Fetches data using a request function from the API closure.
-//  * @param {function(object=): Request} source - A function returning a Request object, such as {@link api.getTasks}.
-//  * @param task {object}could be a object that contains new task or other data given into system
-//  * @returns {Promise<object[]>} A promise resolving to an array of objects. for us is task or tasks from given source
-//  * @see {@link api} for available request functions.
-//  */
-// function getData(source, task = null) {
-//     const request = task ? source(task) : source();
-//     return fetch(request).then(response => {
-//         if (!response.ok) throw new Error('Network response was not ok');
-//         return response.json()
-//     }).then(obj => {
-//         if (obj.error !== false) throw new Error('something went wrong with data');
-//         //console.log('data is here',obj);
-//         return Array.isArray(obj.data) ? obj.data : [obj.data];
-//     }).catch(error => console.log(error));
-// }
-
 /**
  *
  * render card (soustavu elementů) for every given task
@@ -197,14 +177,12 @@ function renderOperations(operations, taskData) {
 function deleteTaskHandler(evt, obj) {
     evt.preventDefault();
     const id = obj.id;
-    //console.log('deleting task: ', id, '')
     apiDeleteTask(id).then(response => {
         if (!response.ok) {
             console.log(response)
             throw new Error('Network response was not ok\n');
 
         } else {
-            //console.log('deleting task: ', id, 'was successful')
             obj.section.remove();
             obj = null;//remove reference to the obj of the task!!!!
         }
@@ -219,7 +197,7 @@ function addOperationHandler(evt, taskObj) {
         alert('description must be filled and at least 5 characters long');
         return;
     }
-//console.log('adding operation: ', description, 'for task: ', id, '')
+
     const operation = {
         description: description, timeSpent: 0
     }
@@ -237,7 +215,7 @@ function addOperationHandler(evt, taskObj) {
         }
         const item = new OperationItem(obj.data);
         taskObj.operations.push(item);
-        //console.log('new operation added\n', 'list of operations:', '\n', taskObj.operations);
+
         taskObj.list.append(item.render());
     }).catch(error => console.log(error));
     taskObj.form.reset();
@@ -257,11 +235,11 @@ function updateOperationHandler(evt, obj, addTime) {
         description: description, timeSpent: newTime
     }).then(response => {
         if (!response.ok) {
-            //console.log(response);
+
             throw new Error('Network response was not ok' + 'this is response: ' + response.json());
         } else {
             obj.updateTimeSpent(newTime);
-            //console.log('updating operation: ', obj.id, 'was successful')
+
         }
     }).catch(error => console.log(error));
 
@@ -346,12 +324,12 @@ class TaskCard extends Component {
         this.header.append(this.buttons)
         this.section.append(this.header);
         this.section.append(this.list);
-        //console.log(task)
+
         if (this.body !== null) {
-            //console.log(this.body)
+
             this.section.append(this.body);
         }
-        //console.log(this.section.children)
+
     }
 
     render() {
@@ -418,8 +396,6 @@ class TaskCard extends Component {
         this.body.remove();
         this.btnFinish.remove();
     }
-
-
 }
 
 class OperationItem extends Component {
@@ -453,7 +429,6 @@ class OperationItem extends Component {
         this.descriptionDiv = document.createElement('div');
         this.descriptionDiv.innerText = this.description;
         this.descriptionDiv.append(element);
-        //console.log(this.descriptionDiv.children)
     }
 
     createButtons() {
@@ -486,7 +461,6 @@ class OperationItem extends Component {
     render() {
         return this.item;
     }
-
 }
 
 
