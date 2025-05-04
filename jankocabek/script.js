@@ -72,7 +72,7 @@ function apiListTask() {
  */
 function apiListOperationForTask(taskId) {
     return fetch(api().getOperationsForTask(taskId)).then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) throw handleErrorResponse(response);
         return response.json()
     }).then(obj => {
         if (obj.error !== false){
@@ -89,7 +89,7 @@ function apiListOperationForTask(taskId) {
  */
 function apiCreateTask(task) {
     return fetch(api().addTask(task)).then(response => {
-        if (!response.ok) throw handleErrorResponse(response)
+        if (!response.ok) throw handleErrorResponse(response);
         return response.json()
     }).then(obj => {
         if (obj.error !== false) throw handleErrorInData(obj);
@@ -421,6 +421,7 @@ class TaskCard extends Component {
 
 class OperationItem extends Component {
     constructor(operation) {
+        if (typeof operation !== "object") throw Error('Operation must be an object');
         super();
         this.id = operation.id;
         this.description = operation.description;
