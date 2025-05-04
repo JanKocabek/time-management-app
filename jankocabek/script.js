@@ -58,8 +58,9 @@ function apiListTask() {
         if (!response.ok) throw handleErrorResponse(response)
         return response.json()
     }).then(obj => {
-        if (obj.error !== false) throw new Error('something went wrong with data');
-        console.log(obj);
+        if (obj.error !== false) {
+            throw handleErrorInData(obj);
+        }
         return obj.data
     }).catch(error => console.log(error));
 }
@@ -74,7 +75,9 @@ function apiListOperationForTask(taskId) {
         if (!response.ok) throw new Error('Network response was not ok');
         return response.json()
     }).then(obj => {
-        if (obj.error !== false) throw new Error('something went wrong with data');
+        if (obj.error !== false){
+            throw handleErrorInData()
+        }
         return Array.from(obj.data);
     }).catch(error => console.log(error));
 }
@@ -89,7 +92,7 @@ function apiCreateTask(task) {
         if (!response.ok) throw handleErrorResponse(response)
         return response.json()
     }).then(obj => {
-        if (obj.error !== false) throw new Error('something went wrong with data');
+        if (obj.error !== false) throw handleErrorInData(obj);
         return [obj.data];//this and array.of() works dont use Array.from on not iterable things new.Array() have different result on numbers
     }).catch(error => console.log(error));
 }
@@ -168,7 +171,6 @@ function renderOperations(operations, taskData) {
 /* section of event handlers*/
 
 
-
 function deleteTaskHandler(evt, obj) {
     evt.preventDefault();
     const id = obj.id;
@@ -202,8 +204,7 @@ function addOperationHandler(evt, taskObj) {
         return response.json()
     }).then(obj => {
         if (obj.error === true) {
-            console.log('ERROR: ', obj)
-            throw new Error('something went wrong with data');
+            throw handleErrorInData(obj);
         }
         const item = new OperationItem(obj.data);
         taskObj.operations.push(item);
@@ -258,9 +259,7 @@ function finnishTaskHandler(evt, obj) {
             console.log(response)
             throw handleErrorResponse(response);
         }
-        console.log(response);
         obj.closeTask();
-        console.log('updating task: ', obj.taskData.id, 'was successful');
     }).catch(error => console.log(error));
 }
 
@@ -270,8 +269,8 @@ function finnishTaskHandler(evt, obj) {
  * @returns {Error} custom error message explain what response code means
  */
 function handleErrorResponse(response) {
-    const resp=response.status;
-    console.log("response: ",response);
+    const resp = response.status;
+    console.log("response: ", response);
     alert(`Error happened: response code: ${resp}\n whole response is in the console:\ngive these info to the developers\ apology for inconvenience, Thank you`);
     let respMean;
     switch (resp) {
@@ -285,9 +284,15 @@ function handleErrorResponse(response) {
             respMean = '404: Not Found (task or operation does not exist)\n';
             break;
         default:
-            respMean =resp+ ": somethings go wrong beside known errors\n"
+            respMean = resp + ": somethings go wrong beside known errors\n"
     }
     return new Error(`code:\n ${respMean}`);
+}
+
+function handleErrorInData(obj){
+    alert('something went wrong with data check console for more info');
+    console.log("this contain err: ",obj);
+    return new Error('something went wrong with data');
 }
 
 /* section of classes representing DOM elements (rendered task and operation items)  */
