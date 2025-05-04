@@ -34,15 +34,12 @@ const api = () => {
  * @see {@link addTaskFromForm} add event listener to form to be able to add a new task
  */
 document.addEventListener('DOMContentLoaded', function () {
-    //  const apiInstance = api();
     apiListTask()
         .then(task => renderTask(task))
         .then(tasksData => {
             tasksData.forEach((task) => {
-                // console.log("given task: ", task)
                 apiListOperationForTask(task.id)
                     .then(operations => {
-                        // console.log("given operations: ", operations)
                         renderOperations(operations, task);
                     })
             })
@@ -78,7 +75,6 @@ function apiListOperationForTask(taskId) {
         return response.json()
     }).then(obj => {
         if (obj.error !== false) throw new Error('something went wrong with data');
-        // console.log('operations data: ', obj.data);
         return Array.from(obj.data);
     }).catch(error => console.log(error));
 }
@@ -94,10 +90,8 @@ function apiCreateTask(task) {
         return response.json()
     }).then(obj => {
         if (obj.error !== false) throw new Error('something went wrong with data');
-        console.log('new task add: ', obj.data);
         return [obj.data];//this and array.of() works dont use Array.from on not iterable things new.Array() have different result on numbers
     }).catch(error => console.log(error));
-    // return getData(source,task)
 }
 
 /**nasleduej list of basic function dle LMS, vraci promise s response ktery dale zpracovavam
@@ -131,7 +125,6 @@ function addTaskFromForm() {
     const form = document.getElementsByTagName('form')[0];
     form.addEventListener('submit', (evt) => {
         evt.preventDefault();
-        // console.log(form.elements.namedItem('title').value)
         const task = {
             title: form.elements.namedItem('title').value,
             description: form.elements.namedItem('description').value,
@@ -141,7 +134,6 @@ function addTaskFromForm() {
             alert('title and description must be filled and at least 5 characters long');
             return;
         }
-        //apiInstance.apiCreateTask, task
         apiCreateTask(task).then(task => renderTask(task))
     })
 }
@@ -201,7 +193,6 @@ function addOperationHandler(evt, taskObj) {
     const operation = {
         description: description, timeSpent: 0
     }
-// console.log(description)
     apiCreateOperationForTask(id, operation).then(response => {
         if (response.ok === false) {
             console.log(response)
@@ -389,7 +380,6 @@ class TaskCard extends Component {
 
     closeTask() {
         this.taskData.status = 'closed';
-        console.log(this.operations)
         this.operations.forEach(operation => {
             operation.buttons.remove();
         });
@@ -400,7 +390,6 @@ class TaskCard extends Component {
 
 class OperationItem extends Component {
     constructor(operation) {
-        // console.log(operation.task.status)
         super();
         this.id = operation.id;
         this.description = operation.description;
