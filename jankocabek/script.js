@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
  */
 function apiListTask() {
     return fetch(api().getTasks()).then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) throw handleErrorResponse(response)
         return response.json()
     }).then(obj => {
         if (obj.error !== false) throw new Error('something went wrong with data');
@@ -86,7 +86,7 @@ function apiListOperationForTask(taskId) {
  */
 function apiCreateTask(task) {
     return fetch(api().addTask(task)).then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) throw handleErrorResponse(response)
         return response.json()
     }).then(obj => {
         if (obj.error !== false) throw new Error('something went wrong with data');
@@ -166,14 +166,14 @@ function renderOperations(operations, taskData) {
 
 /* section of event handlers*/
 
+
+
 function deleteTaskHandler(evt, obj) {
     evt.preventDefault();
     const id = obj.id;
     apiDeleteTask(id).then(response => {
         if (!response.ok) {
-            console.log(response)
-            throw new Error('Network response was not ok\n');
-
+            throw handleErrorResponse(response);
         } else {
             obj.section.remove();
             obj = null;//remove reference to the obj of the task!!!!
@@ -196,7 +196,7 @@ function addOperationHandler(evt, taskObj) {
     apiCreateOperationForTask(id, operation).then(response => {
         if (response.ok === false) {
             console.log(response)
-            throw new Error('Network response was not ok' + response);
+            throw handleErrorResponse(response);
         }
         return response.json()
     }).then(obj => {
@@ -227,7 +227,7 @@ function updateOperationHandler(evt, obj, addTime) {
     }).then(response => {
         if (!response.ok) {
 
-            throw new Error('Network response was not ok' + 'this is response: ' + response.json());
+            throw handleErrorResponse(response);
         } else {
             obj.updateTimeSpent(newTime);
 
@@ -240,7 +240,7 @@ function deleteOperationHandler(evt, obj) {
     evt.preventDefault();
     apiDeleteOperation(obj.id).then(response => {
         if (!response.ok) {
-            throw new Error('Network response was not ok' + response.json());
+            throw handleErrorResponse(response);
         }
         obj.item.remove();
         obj = null;
@@ -255,7 +255,7 @@ function finnishTaskHandler(evt, obj) {
     apiUpdateTask(obj.id, changedData).then(response => {
         if (!response.ok) {
             console.log(response)
-            throw new Error('Network response was not ok' + response.json());
+            throw handleErrorResponse(response);
         }
         console.log(response);
         obj.closeTask();
@@ -263,6 +263,31 @@ function finnishTaskHandler(evt, obj) {
     }).catch(error => console.log(error));
 }
 
+/**
+ *
+ * @param response response from fetch
+ * @returns {Error} custom error message explain what response code means
+ */
+function handleErrorResponse(response) {
+    const resp=response.status;
+    console.log("response: ",response);
+    alert(`Error happened: response code: ${resp}\n whole response is in the console:\ngive these info to the developers\ apology for inconvenience, Thank you`);
+    let respMean;
+    switch (resp) {
+        case 400:
+            respMean = '400: Bad Request (either the Content-Type header is missing, or the title/description of the task being created is missing, or something else is wrong with the request itself)\n';
+            break;
+        case 403:
+            respMean = '403: Forbidden (probably missing header Authorization\n';
+            break;
+        case 404:
+            respMean = '404: Not Found (task or operation does not exist)\n';
+            break;
+        default:
+            respMean =resp+ ": somethings go wrong beside known errors\n"
+    }
+    return new Error(`code:\n ${respMean}`);
+}
 
 /* section of classes representing DOM elements (rendered task and operation items)  */
 
@@ -451,5 +476,3 @@ class OperationItem extends Component {
         return this.item;
     }
 }
-
-
