@@ -1,6 +1,5 @@
 /* closure for dynamically generating the right request for each call
 *all things in one place and apiKey and apiBaseUrl are hidden
-* vraci sestavené funkce pro jednotlivá volání
 */
 const api = () => {
     const apikey = '134d015d-5119-4142-af6f-1188e56feb36';
@@ -97,9 +96,7 @@ function apiCreateTask(task) {
     }).catch(error => console.log(error));
 }
 
-/**nasleduej list of basic function dle LMS, vraci promise s response ktery dale zpracovavam
- * nevim proč jsem skončil u tohodle rozdeleni na halvičkua zbytek jinde asi jsem se snazil to spojit stejne casti
- *
+/**follows list of basic fetching functions
  * @param id
  * @returns {Promise<Response>} response from server if ok contain all the necessary data if need
  */
